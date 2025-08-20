@@ -22,7 +22,6 @@
 					"value": "@dataset().p_archivo",
 					"type": "Expression"
 				},
-				"folderPath": "entrada",
 				"container": {
 					"value": "@dataset().p_contenedor",
 					"type": "Expression"
