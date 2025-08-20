@@ -65,7 +65,7 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Copy data1",
+							"name": "CopiaDinamica",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -77,7 +77,100 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"enableStaging": false
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_AzureBlob_Generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_contenedor": {
+											"value": "@item().contenedorOrigen",
+											"type": "Expression"
+										},
+										"p_archivo": {
+											"value": "@item().archivoOrigen",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_AzureBlob_Generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_contenedor": {
+											"value": "@item().contenedorDestino",
+											"type": "Expression"
+										},
+										"p_archivo": {
+											"value": "@item().archivoDestino",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "If Condition1",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "CopiaDinamica",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().prioridad, 1)",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Fail1",
+										"type": "Fail",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"message": "Error en la copia",
+											"errorCode": "10"
+										}
+									}
+								]
 							}
 						}
 					]
