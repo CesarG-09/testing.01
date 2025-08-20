@@ -106,6 +106,49 @@
 									"value": "@equals(variables('prio'), 1)",
 									"type": "Expression"
 								},
+								"ifFalseActivities": [
+									{
+										"name": "copy idx_copy1",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "copy_idx",
+											"value": {
+												"value": "@variables('idx')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set variable1_copy1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "copy idx_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "idx",
+											"value": {
+												"value": "@string(add(int(variables('copy_idx')), 1))",
+												"type": "Expression"
+											}
+										}
+									}
+								],
 								"ifTrueActivities": [
 									{
 										"name": "Fail1",
@@ -211,12 +254,6 @@
 							"name": "copy idx",
 							"type": "SetVariable",
 							"dependsOn": [
-								{
-									"activity": "Control de Errores",
-									"dependencyConditions": [
-										"Completed"
-									]
-								},
 								{
 									"activity": "Copy data1",
 									"dependencyConditions": [
