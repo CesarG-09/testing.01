@@ -186,6 +186,8 @@
 									{
 										"name": "Fail1",
 										"type": "Fail",
+										"state": "Inactive",
+										"onInactiveMarkAs": "Failed",
 										"dependsOn": [
 											{
 												"activity": "Web1",
