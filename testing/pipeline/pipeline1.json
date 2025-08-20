@@ -160,68 +160,68 @@
 												}
 											}
 										]
+									}
+								]
+							}
+						},
+						{
+							"name": "Control de Errores",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "If Not Stopped",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(not(variables('stopNow')), equals(int(item()['prioridad']), 1))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Log Error",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Fail1",
+										"type": "Fail",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"message": "Error crítico en archivo de prioridad 1",
+											"errorCode": "10"
+										}
 									},
 									{
-										"name": "Control de Errores",
-										"type": "IfCondition",
+										"name": "stopNowTrue",
+										"type": "SetVariable",
 										"dependsOn": [
 											{
-												"activity": "Copy data1",
+												"activity": "Fail1",
 												"dependencyConditions": [
-													"Failed"
+													"Succeeded"
 												]
 											}
 										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
 										"userProperties": [],
 										"typeProperties": {
-											"expression": {
-												"value": "@equals(int(item()['prioridad']), 1)",
-												"type": "Expression"
-											},
-											"ifFalseActivities": [
-												{
-													"name": "Log Error",
-													"type": "Wait",
-													"dependsOn": [],
-													"userProperties": [],
-													"typeProperties": {
-														"waitTimeInSeconds": 1
-													}
-												}
-											],
-											"ifTrueActivities": [
-												{
-													"name": "Fail1",
-													"type": "Fail",
-													"dependsOn": [],
-													"userProperties": [],
-													"typeProperties": {
-														"message": "Error crítico en archivo de prioridad 1",
-														"errorCode": "10"
-													}
-												},
-												{
-													"name": "stopNowTrue",
-													"type": "SetVariable",
-													"dependsOn": [
-														{
-															"activity": "Fail1",
-															"dependencyConditions": [
-																"Succeeded"
-															]
-														}
-													],
-													"policy": {
-														"secureOutput": false,
-														"secureInput": false
-													},
-													"userProperties": [],
-													"typeProperties": {
-														"variableName": "stopNow",
-														"value": true
-													}
-												}
-											]
+											"variableName": "stopNow",
+											"value": true
 										}
 									}
 								]
