@@ -1,0 +1,366 @@
+{
+	"name": "pipeline2",
+	"properties": {
+		"activities": [
+			{
+				"name": "control",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ae",
+					"value": [
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "cliente.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "cliente.csv",
+							"prioridad": 1
+						},
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "cuenta.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "cuenta.csv",
+							"prioridad": 1
+						},
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "direccione.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "direcciones.csv",
+							"prioridad": 2
+						},
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "productos.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "productos.csv",
+							"prioridad": 2
+						}
+					]
+				}
+			},
+			{
+				"name": "stopNow",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "stopNow",
+					"value": false
+				}
+			},
+			{
+				"name": "Until1",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "idx",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "control",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "stopNow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or( greaterOrEquals( int(variables('idx')), length(variables('ae')) ), variables('stopNow') )\n",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Control de Errores",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "prioridad",
+									"dependencyConditions": [
+										"Completed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(int(variables('prio')), 1)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "copy idx_copy1",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "copy_idx",
+											"value": {
+												"value": "@variables('idx')",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Set variable1_copy1",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "copy idx_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "idx",
+											"value": {
+												"value": "@string(add(int(variables('copy_idx')), 1))",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Fail1",
+										"type": "Fail",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"message": "error",
+											"errorCode": "10"
+										}
+									},
+									{
+										"name": "stopNowTrue",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Fail1",
+												"dependencyConditions": [
+													"Completed"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "stopNow",
+											"value": true
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": false,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_AzureBlob_Generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_contenedor": "@variables('ae')[int(variables('idx'))]['contenedorOrigen']",
+										"p_archivo": "@variables('ae')[int(variables('idx'))]['archivoOrigen']"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_AzureBlob_Generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_contenedor": "@variables('ae')[int(variables('idx'))]['contenedorDestino']",
+										"p_archivo": "@variables('ae')[int(variables('idx'))]['archivoDestino']"
+									}
+								}
+							]
+						},
+						{
+							"name": "copy idx",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy data1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "copy_idx",
+								"value": {
+									"value": "@variables('idx')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set variable1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "copy idx",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "idx",
+								"value": {
+									"value": "@string(add(int(variables('copy_idx')), 1))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "prioridad",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy data1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "prio",
+								"value": {
+									"value": "@variables('ae')[int(variables('idx'))]['prioridad']",
+									"type": "Expression"
+								}
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "idx",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "idx",
+					"value": {
+						"value": "@string(0)",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"ae": {
+				"type": "Array"
+			},
+			"stopNow": {
+				"type": "Boolean"
+			},
+			"idx": {
+				"type": "String"
+			},
+			"copy_idx": {
+				"type": "String"
+			},
+			"prio": {
+				"type": "Integer"
+			}
+		},
+		"annotations": []
+	}
+}
