@@ -96,7 +96,7 @@
 								{
 									"activity": "prioridad",
 									"dependencyConditions": [
-										"Succeeded"
+										"Completed"
 									]
 								}
 							],
