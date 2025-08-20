@@ -272,7 +272,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "idx",
-					"value": "0"
+					"value": "@string(0)"
 				}
 			}
 		],
