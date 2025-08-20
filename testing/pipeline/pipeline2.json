@@ -52,20 +52,20 @@
 					{
 						"activity": "Set variable1",
 						"dependencyConditions": [
-							"Succeeded"
+							"Completed"
 						]
 					}
 				],
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@variables('a')",
+						"value": "@variables('ae')",
 						"type": "Expression"
 					},
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Copy data1_copy1",
+							"name": "Copy data1",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -115,11 +115,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"p_contenedor": {
-											"value": "@item().contenedorOrigen\r\n",
+											"value": "@item().contenedorOrigen",
 											"type": "Expression"
 										},
 										"p_archivo": {
-											"value": "@item().archivoOrigen\n",
+											"value": "@item().archivoOrigen",
 											"type": "Expression"
 										}
 									}
@@ -141,37 +141,6 @@
 									}
 								}
 							]
-						},
-						{
-							"name": "If Condition1",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "Copy data1_copy1",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@equals(item().prioridad, 1)",
-									"type": "Expression"
-								},
-								"ifTrueActivities": [
-									{
-										"name": "Fail1",
-										"type": "Fail",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"message": "error",
-											"errorCode": "10"
-										}
-									}
-								]
-							}
 						}
 					]
 				}
