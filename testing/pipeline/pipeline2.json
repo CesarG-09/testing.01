@@ -203,7 +203,7 @@
 							]
 						},
 						{
-							"name": "add idx",
+							"name": "copy idx",
 							"type": "SetVariable",
 							"dependsOn": [
 								{
@@ -219,8 +219,35 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
+								"variableName": "copy_idx",
+								"value": {
+									"value": "@variables('idx')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Set variable1",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "copy idx",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
 								"variableName": "idx",
-								"value": "@string( add( int(variables('idx')), 1 ) )\n"
+								"value": {
+									"value": "@string(add(int(variables('copy_idx')), 1))",
+									"type": "Expression"
+								}
 							}
 						}
 					],
@@ -245,14 +272,11 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "idx",
-					"value": 0
+					"value": "0"
 				}
 			}
 		],
 		"variables": {
-			"a": {
-				"type": "String"
-			},
 			"ae": {
 				"type": "Array"
 			},
@@ -260,7 +284,10 @@
 				"type": "Boolean"
 			},
 			"idx": {
-				"type": "Integer"
+				"type": "String"
+			},
+			"copy_idx": {
+				"type": "String"
 			}
 		},
 		"annotations": []
