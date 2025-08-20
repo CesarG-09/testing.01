@@ -1,0 +1,307 @@
+{
+	"name": "pipeline4",
+	"properties": {
+		"activities": [
+			{
+				"name": "Load Config from Blob",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "JsonSource",
+						"storeSettings": {
+							"type": "AzureBlobStorageReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "JsonReadSettings"
+						}
+					},
+					"dataset": {
+						"referenceName": "JSON_AzureBlob_Config",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Set Config Array",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Load Config from Blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ae",
+					"value": {
+						"value": "@activity('Load Config from Blob').output.firstRow.archivos",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Process Files",
+				"type": "Until",
+				"dependsOn": [
+					{
+						"activity": "Set Config Array",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@or(greaterOrEquals(variables('idx'), length(variables('ae'))), variables('stopNow'))",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Process Current File",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@less(variables('idx'), length(variables('ae')))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Copy File",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": false,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_AzureBlob_Generico",
+												"type": "DatasetReference",
+												"parameters": {
+													"p_contenedor": "@variables('ae')[variables('idx')]['contenedorOrigen']",
+													"p_archivo": "@variables('ae')[variables('idx')]['archivoOrigen']"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_AzureBlob_Generico",
+												"type": "DatasetReference",
+												"parameters": {
+													"p_contenedor": "@variables('ae')[variables('idx')]['contenedorDestino']",
+													"p_archivo": "@variables('ae')[variables('idx')]['archivoDestino']"
+												}
+											}
+										]
+									},
+									{
+										"name": "Set Temp Index",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Copy File",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "tempIdx",
+											"value": {
+												"value": "@add(variables('idx'), 1)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Increment Index Success",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set Temp Index",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "idx",
+											"value": {
+												"value": "@variables('tempIdx')",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Handle Copy Error",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Process Current File",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(less(variables('idx'), length(variables('ae'))), equals(variables('ae')[variables('idx')]['prioridad'], 1))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Set Temp Index Error",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "tempIdx",
+											"value": {
+												"value": "@add(variables('idx'), 1)",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "Increment Index Error",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Set Temp Index Error",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "idx",
+											"value": {
+												"value": "@variables('tempIdx')",
+												"type": "Expression"
+											}
+										}
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "Stop Pipeline",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "stopNow",
+											"value": true
+										}
+									}
+								]
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			}
+		],
+		"variables": {
+			"ae": {
+				"type": "Array"
+			},
+			"stopNow": {
+				"type": "Boolean",
+				"defaultValue": false
+			},
+			"idx": {
+				"type": "Integer",
+				"defaultValue": 0
+			},
+			"tempIdx": {
+				"type": "Integer",
+				"defaultValue": 0
+			}
+		},
+		"annotations": []
+	}
+}
