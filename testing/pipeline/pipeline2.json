@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Set variable1",
+				"name": "control",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
@@ -46,26 +46,51 @@
 				}
 			},
 			{
-				"name": "ForEach1",
-				"type": "ForEach",
+				"name": "stopNow",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "stopNow",
+					"value": "false\n"
+				}
+			},
+			{
+				"name": "Until1",
+				"type": "Until",
 				"dependsOn": [
 					{
-						"activity": "Set variable1",
+						"activity": "idx",
 						"dependencyConditions": [
-							"Completed"
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "stopNow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "control",
+						"dependencyConditions": [
+							"Succeeded"
 						]
 					}
 				],
 				"userProperties": [],
 				"typeProperties": {
-					"items": {
-						"value": "@variables('ae')",
+					"expression": {
+						"value": "@or( greaterOrEquals( int(variables('idx')), length(variables('ae')) ), variables('stopNow') )\n",
 						"type": "Expression"
 					},
-					"isSequential": true,
 					"activities": [
 						{
-							"name": "If Condition1",
+							"name": "Control de Errores",
 							"type": "IfCondition",
 							"dependsOn": [
 								{
@@ -78,7 +103,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(item().prioridad, 1)\n",
+									"value": "@equals( variables('ae')[int(variables('idx'))]['prioridad'], 1 )\n",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
@@ -90,6 +115,27 @@
 										"typeProperties": {
 											"message": "error",
 											"errorCode": "10"
+										}
+									},
+									{
+										"name": "stopNowTrue",
+										"type": "SetVariable",
+										"dependsOn": [
+											{
+												"activity": "Fail1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "stopNow",
+											"value": true
 										}
 									}
 								]
@@ -145,14 +191,8 @@
 									"referenceName": "DS_AzureBlob_Generico",
 									"type": "DatasetReference",
 									"parameters": {
-										"p_contenedor": {
-											"value": "@item().contenedorOrigen",
-											"type": "Expression"
-										},
-										"p_archivo": {
-											"value": "@item().archivoOrigen",
-											"type": "Expression"
-										}
+										"p_contenedor": "@variables('ae')[int(variables('idx'))]['contenedorOrigen']",
+										"p_archivo": "@variables('ae')[int(variables('idx'))]['archivoOrigen']"
 									}
 								}
 							],
@@ -161,19 +201,49 @@
 									"referenceName": "DS_AzureBlob_Generico",
 									"type": "DatasetReference",
 									"parameters": {
-										"p_contenedor": {
-											"value": "@item().contenedorDestino",
-											"type": "Expression"
-										},
-										"p_archivo": {
-											"value": "@item().archivoDestino",
-											"type": "Expression"
-										}
+										"p_contenedor": "@variables('ae')[int(variables('idx'))]['contenedorDestino']",
+										"p_archivo": "@variables('ae')[int(variables('idx'))]['archivoDestino']"
 									}
 								}
 							]
+						},
+						{
+							"name": "add idx",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy data1",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "idx",
+								"value": "@string( add( int(variables('idx')), 1 ) )\n"
+							}
 						}
-					]
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "idx",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "idx",
+					"value": 0
 				}
 			}
 		],
@@ -183,6 +253,12 @@
 			},
 			"ae": {
 				"type": "Array"
+			},
+			"stopNow": {
+				"type": "Boolean"
+			},
+			"idx": {
+				"type": "Integer"
 			}
 		},
 		"annotations": []
