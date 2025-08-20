@@ -103,23 +103,6 @@
 										"typeProperties": {
 											"waitTimeInSeconds": 1
 										}
-									},
-									{
-										"name": "Fail1",
-										"type": "Fail",
-										"dependsOn": [
-											{
-												"activity": "Skip Processing",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
-										"userProperties": [],
-										"typeProperties": {
-											"message": "ERROR EN UNA TABLA PRIORIDAD",
-											"errorCode": "100"
-										}
 									}
 								],
 								"ifTrueActivities": [
@@ -233,6 +216,23 @@
 										"typeProperties": {
 											"variableName": "stopNow",
 											"value": true
+										}
+									},
+									{
+										"name": "Fail1",
+										"type": "Fail",
+										"dependsOn": [
+											{
+												"activity": "stopNowTrue",
+												"dependencyConditions": [
+													"Completed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"message": "ERROR EN UNA TABLA PRIORIDAD",
+											"errorCode": "100"
 										}
 									}
 								]
