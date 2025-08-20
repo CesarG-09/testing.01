@@ -16,7 +16,7 @@
 					"value": [
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "clientes.csv",
+							"archivoOrigen": "cliente.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "cliente.csv",
 							"prioridad": 1
@@ -30,7 +30,7 @@
 						},
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "direcciones.csv",
+							"archivoOrigen": "direccione.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "direcciones.csv",
 							"prioridad": 2
@@ -48,14 +48,7 @@
 			{
 				"name": "stopNow",
 				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "control",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
@@ -75,6 +68,18 @@
 						"dependencyConditions": [
 							"Succeeded"
 						]
+					},
+					{
+						"activity": "control",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "stopNow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
 				],
 				"userProperties": [],
@@ -89,16 +94,16 @@
 							"type": "IfCondition",
 							"dependsOn": [
 								{
-									"activity": "Copy data1",
+									"activity": "prioridad",
 									"dependencyConditions": [
-										"Failed"
+										"Succeeded"
 									]
 								}
 							],
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(variables('ae')[int(variables('idx'))]['prioridad'], 1)",
+									"value": "@equals(variables('prio'), 1)",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
@@ -119,7 +124,7 @@
 											{
 												"activity": "Fail1",
 												"dependencyConditions": [
-													"Succeeded"
+													"Completed"
 												]
 											}
 										],
@@ -207,6 +212,12 @@
 							"type": "SetVariable",
 							"dependsOn": [
 								{
+									"activity": "Control de Errores",
+									"dependencyConditions": [
+										"Completed"
+									]
+								},
+								{
 									"activity": "Copy data1",
 									"dependencyConditions": [
 										"Succeeded"
@@ -249,6 +260,30 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "prioridad",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "Copy data1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "prio",
+								"value": {
+									"value": "@variables('ae')[int(variables('idx'))]['prioridad']",
+									"type": "Expression"
+								}
+							}
 						}
 					],
 					"timeout": "0.12:00:00"
@@ -257,14 +292,7 @@
 			{
 				"name": "idx",
 				"type": "SetVariable",
-				"dependsOn": [
-					{
-						"activity": "stopNow",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
@@ -272,7 +300,10 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "idx",
-					"value": "@string(0)"
+					"value": {
+						"value": "@string(0)",
+						"type": "Expression"
+					}
 				}
 			}
 		],
@@ -290,7 +321,7 @@
 				"type": "String"
 			},
 			"prio": {
-				"type": "String"
+				"type": "Integer"
 			}
 		},
 		"annotations": []
