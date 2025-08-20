@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "v_ConfiguracionTablas",
+				"name": "control",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
@@ -12,7 +12,7 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "v_ConfiguracionTablas",
+					"variableName": "ae",
 					"value": [
 						{
 							"contenedorOrigen": "entrada",
@@ -46,11 +46,31 @@
 				}
 			},
 			{
+				"name": "stopNow",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "stopNow",
+					"value": false
+				}
+			},
+			{
 				"name": "ForEach1",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "v_ConfiguracionTablas",
+						"activity": "control",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "stopNow",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -59,104 +79,152 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@variables('v_ConfiguracionTablas')",
+						"value": "@variables('ae')",
 						"type": "Expression"
 					},
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "CopiaDinamica",
-							"type": "Copy",
+							"name": "If Not Stopped",
+							"type": "IfCondition",
 							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
 							"userProperties": [],
 							"typeProperties": {
-								"source": {
-									"type": "DelimitedTextSource",
-									"storeSettings": {
-										"type": "AzureBlobStorageReadSettings",
-										"recursive": false,
-										"enablePartitionDiscovery": false
-									},
-									"formatSettings": {
-										"type": "DelimitedTextReadSettings"
-									}
+								"expression": {
+									"value": "@not(variables('stopNow'))",
+									"type": "Expression"
 								},
-								"sink": {
-									"type": "DelimitedTextSink",
-									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings"
-									},
-									"formatSettings": {
-										"type": "DelimitedTextWriteSettings",
-										"quoteAllText": true,
-										"fileExtension": ".txt"
-									}
-								},
-								"enableStaging": false,
-								"translator": {
-									"type": "TabularTranslator",
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
-								}
-							},
-							"inputs": [
-								{
-									"referenceName": "DS_AzureBlob_Generico",
-									"type": "DatasetReference",
-									"parameters": {
-										"p_contenedor": {
-											"value": "@item().contenedorOrigen",
-											"type": "Expression"
+								"ifTrueActivities": [
+									{
+										"name": "Copy data1",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
 										},
-										"p_archivo": {
-											"value": "@item().archivoOrigen",
-											"type": "Expression"
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": false,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_AzureBlob_Generico",
+												"type": "DatasetReference",
+												"parameters": {
+													"p_contenedor": "@item()['contenedorOrigen']",
+													"p_archivo": "@item()['archivoOrigen']"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_AzureBlob_Generico",
+												"type": "DatasetReference",
+												"parameters": {
+													"p_contenedor": "@item()['contenedorDestino']",
+													"p_archivo": "@item()['archivoDestino']"
+												}
+											}
+										]
+									},
+									{
+										"name": "Control de Errores",
+										"type": "IfCondition",
+										"dependsOn": [
+											{
+												"activity": "Copy data1",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"expression": {
+												"value": "@equals(int(item()['prioridad']), 1)",
+												"type": "Expression"
+											},
+											"ifFalseActivities": [
+												{
+													"name": "Log Error",
+													"type": "Wait",
+													"dependsOn": [],
+													"userProperties": [],
+													"typeProperties": {
+														"waitTimeInSeconds": 1
+													}
+												}
+											],
+											"ifTrueActivities": [
+												{
+													"name": "Fail1",
+													"type": "Fail",
+													"dependsOn": [],
+													"userProperties": [],
+													"typeProperties": {
+														"message": "Error crítico en archivo de prioridad 1",
+														"errorCode": "10"
+													}
+												},
+												{
+													"name": "stopNowTrue",
+													"type": "SetVariable",
+													"dependsOn": [
+														{
+															"activity": "Fail1",
+															"dependencyConditions": [
+																"Succeeded"
+															]
+														}
+													],
+													"policy": {
+														"secureOutput": false,
+														"secureInput": false
+													},
+													"userProperties": [],
+													"typeProperties": {
+														"variableName": "stopNow",
+														"value": true
+													}
+												}
+											]
 										}
 									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "DS_AzureBlob_Generico",
-									"type": "DatasetReference",
-									"parameters": {
-										"p_contenedor": {
-											"value": "@item().contenedorDestino",
-											"type": "Expression"
-										},
-										"p_archivo": {
-											"value": "@item().archivoDestino",
-											"type": "Expression"
-										}
-									}
-								}
-							]
-						},
-						{
-							"name": "Fail1",
-							"type": "Fail",
-							"dependsOn": [
-								{
-									"activity": "CopiaDinamica",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"message": "ERROR",
-								"errorCode": "10"
+								]
 							}
 						}
 					]
@@ -164,8 +232,11 @@
 			}
 		],
 		"variables": {
-			"v_ConfiguracionTablas": {
+			"ae": {
 				"type": "Array"
+			},
+			"stopNow": {
+				"type": "Boolean"
 			}
 		},
 		"annotations": []
