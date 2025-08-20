@@ -103,7 +103,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals(variables('prio'), 1)",
+									"value": "@equals(int(variables('prio')), 1)",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
