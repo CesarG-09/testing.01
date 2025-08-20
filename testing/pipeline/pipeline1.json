@@ -166,7 +166,10 @@
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
-											"message": "Error en la copia",
+											"message": {
+												"value": "@Error en la copia: activity('CopiaDinamica').output",
+												"type": "Expression"
+											},
 											"errorCode": "10"
 										}
 									}
