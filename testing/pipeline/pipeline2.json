@@ -98,7 +98,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@equals( variables('ae')[int(variables('idx'))]['prioridad'], 1 )\n",
+									"value": "@equals(string(variables('ae')[int(variables('idx'))]['prioridad']), '1')",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
@@ -287,6 +287,9 @@
 				"type": "String"
 			},
 			"copy_idx": {
+				"type": "String"
+			},
+			"prio": {
 				"type": "String"
 			}
 		},
