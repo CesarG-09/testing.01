@@ -1,0 +1,46 @@
+{
+	"name": "JSON_AzureBlob_Config",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureBlobStorage1",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "file-config.json",
+				"container": "configs"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"archivos": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"contenedorOrigen": {
+								"type": "string"
+							},
+							"archivoOrigen": {
+								"type": "string"
+							},
+							"contenedorDestino": {
+								"type": "string"
+							},
+							"archivoDestino": {
+								"type": "string"
+							},
+							"prioridad": {
+								"type": "integer"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
