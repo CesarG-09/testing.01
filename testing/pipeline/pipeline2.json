@@ -172,6 +172,23 @@
 									}
 								]
 							}
+						},
+						{
+							"name": "Fail2",
+							"type": "Fail",
+							"dependsOn": [
+								{
+									"activity": "If Condition1",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"message": "EXIT",
+								"errorCode": "0"
+							}
 						}
 					]
 				}
