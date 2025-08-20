@@ -94,6 +94,17 @@
 									"value": "@not(variables('stopNow'))",
 									"type": "Expression"
 								},
+								"ifFalseActivities": [
+									{
+										"name": "Skip Processing",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
 								"ifTrueActivities": [
 									{
 										"name": "Copy data1",
@@ -145,14 +156,8 @@
 												"referenceName": "DS_AzureBlob_Generico",
 												"type": "DatasetReference",
 												"parameters": {
-													"p_contenedor": {
-														"value": "@item().contenedorOrigen",
-														"type": "Expression"
-													},
-													"p_archivo": {
-														"value": "@item().archivoOrigen",
-														"type": "Expression"
-													}
+													"p_contenedor": "@item()['contenedorOrigen']",
+													"p_archivo": "@item()['archivoOrigen']"
 												}
 											}
 										],
@@ -161,79 +166,89 @@
 												"referenceName": "DS_AzureBlob_Generico",
 												"type": "DatasetReference",
 												"parameters": {
-													"p_contenedor": {
-														"value": "@item().contenedorDestino",
-														"type": "Expression"
-													},
-													"p_archivo": {
-														"value": "@item().archivoDestino",
-														"type": "Expression"
-													}
+													"p_contenedor": "@item()['contenedorDestino']",
+													"p_archivo": "@item()['archivoDestino']"
 												}
 											}
 										]
-									}
-								]
-							}
-						},
-						{
-							"name": "Control de Errores",
-							"type": "IfCondition",
-							"dependsOn": [
-								{
-									"activity": "If Not Stopped",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"userProperties": [],
-							"typeProperties": {
-								"expression": {
-									"value": "@and(not(variables('stopNow')), equals(int(item()['prioridad']), 1))",
-									"type": "Expression"
-								},
-								"ifFalseActivities": [
-									{
-										"name": "Log Error",
-										"type": "Wait",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"waitTimeInSeconds": 1
-										}
-									}
-								],
-								"ifTrueActivities": [
-									{
-										"name": "Fail1",
-										"type": "Fail",
-										"dependsOn": [],
-										"userProperties": [],
-										"typeProperties": {
-											"message": "Error crítico en archivo de prioridad 1",
-											"errorCode": "10"
-										}
 									},
 									{
-										"name": "stopNowTrue",
-										"type": "SetVariable",
+										"name": "Handle Copy Success",
+										"type": "Wait",
 										"dependsOn": [
 											{
-												"activity": "Fail1",
+												"activity": "Copy data1",
 												"dependencyConditions": [
 													"Succeeded"
 												]
 											}
 										],
-										"policy": {
-											"secureOutput": false,
-											"secureInput": false
-										},
 										"userProperties": [],
 										"typeProperties": {
-											"variableName": "stopNow",
-											"value": true
+											"waitTimeInSeconds": 1
+										}
+									},
+									{
+										"name": "Check Priority on Error",
+										"type": "IfCondition",
+										"dependsOn": [
+											{
+												"activity": "Copy data1",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"expression": {
+												"value": "@equals(int(item()['prioridad']), 1)",
+												"type": "Expression"
+											},
+											"ifFalseActivities": [
+												{
+													"name": "Log Error Priority 2",
+													"type": "Wait",
+													"dependsOn": [],
+													"userProperties": [],
+													"typeProperties": {
+														"waitTimeInSeconds": 1
+													}
+												}
+											],
+											"ifTrueActivities": [
+												{
+													"name": "stopNowTrue",
+													"type": "SetVariable",
+													"dependsOn": [],
+													"policy": {
+														"secureOutput": false,
+														"secureInput": false
+													},
+													"userProperties": [],
+													"typeProperties": {
+														"variableName": "stopNow",
+														"value": true
+													}
+												},
+												{
+													"name": "Fail1",
+													"type": "Fail",
+													"dependsOn": [
+														{
+															"activity": "stopNowTrue",
+															"dependencyConditions": [
+																"Succeeded"
+															]
+														}
+													],
+													"userProperties": [],
+													"typeProperties": {
+														"message": "Error crítico en archivo de prioridad 1. Pipeline detenido.",
+														"errorCode": "10"
+													}
+												}
+											]
 										}
 									}
 								]
