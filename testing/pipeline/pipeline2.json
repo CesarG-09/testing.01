@@ -48,7 +48,14 @@
 			{
 				"name": "stopNow",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "control",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
@@ -56,7 +63,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "stopNow",
-					"value": "false\n"
+					"value": false
 				}
 			},
 			{
@@ -65,18 +72,6 @@
 				"dependsOn": [
 					{
 						"activity": "idx",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "stopNow",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "control",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -235,7 +230,14 @@
 			{
 				"name": "idx",
 				"type": "SetVariable",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "stopNow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"secureOutput": false,
 					"secureInput": false
