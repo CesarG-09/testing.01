@@ -12,8 +12,37 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"variableName": "a",
-					"value": "[{\"contenedorOrigen\":\"entrada\",\"archivoOrigen\":\"cliente.csv\",\"contenedorDestino\":\"salida\",\"archivoDestino\":\"cliente.csv\",\"prioridad\":1},{\"contenedorOrigen\":\"entrada\",\"archivoOrigen\":\"cuenta.csv\",\"contenedorDestino\":\"salida\",\"archivoDestino\":\"cuenta.csv\",\"prioridad\":1},{\"contenedorOrigen\":\"entrada\",\"archivoOrigen\":\"direcciones.csv\",\"contenedorDestino\":\"salida\",\"archivoDestino\":\"direcciones.csv\",\"prioridad\":2},{\"contenedorOrigen\":\"entrada\",\"archivoOrigen\":\"productos.csv\",\"contenedorDestino\":\"salida\",\"archivoDestino\":\"productos.csv\",\"prioridad\":2}]"
+					"variableName": "ae",
+					"value": [
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "cliente.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "cliente.csv",
+							"prioridad": 1
+						},
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "cuenta.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "cuenta.csv",
+							"prioridad": 1
+						},
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "direcciones.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "direcciones.csv",
+							"prioridad": 2
+						},
+						{
+							"contenedorOrigen": "entrada",
+							"archivoOrigen": "productos.csv",
+							"contenedorDestino": "salida",
+							"archivoDestino": "productos.csv",
+							"prioridad": 2
+						}
+					]
 				}
 			},
 			{
@@ -151,6 +180,9 @@
 		"variables": {
 			"a": {
 				"type": "String"
+			},
+			"ae": {
+				"type": "Array"
 			}
 		},
 		"annotations": []
