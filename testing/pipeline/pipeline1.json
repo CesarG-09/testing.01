@@ -174,53 +174,41 @@
 										"userProperties": [],
 										"typeProperties": {
 											"method": "POST",
-											"headers": {
-												"Content-Type": "application/json"
-											},
 											"url": "https://prod-54.westus.logic.azure.com:443/workflows/862b45f6937a47c89c8ef43b0954c69a/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iBD1YB9Pb7ronbTFQF9x-R7InVSOlhLHpggDfQQymN4",
-											"body": {
-												"type": "message",
-												"attachments": [
-													{
-														"contentType": "application/vnd.microsoft.card.adaptive",
-														"content": {
-															"type": "AdaptiveCard",
-															"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-															"version": "1.4",
-															"body": [
-																{
-																	"type": "TextBlock",
-																	"text": "⚠️ Alerta en Proceso de Carga ADF",
-																	"weight": "bolder",
-																	"size": "medium",
-																	"color": "warning"
-																},
-																{
-																	"type": "FactSet",
-																	"facts": [
-																		{
-																			"title": "Tabla:",
-																			"value": "@{item().tablaOrigen}"
-																		},
-																		{
-																			"title": "Prioridad:",
-																			"value": "Secundaria (Proceso Continúa)"
-																		},
-																		{
-																			"title": "Pipeline Run ID:",
-																			"value": "@{activity('CopiaDinamica').pipelineRunId}"
-																		},
-																		{
-																			"title": "Error:",
-																			"value": "@{activity('CopiaDinamica').Error.Message}"
-																		}
-																	]
-																}
-															]
+											"body": [
+												{
+													"type": "TextBlock",
+													"text": "⚠️ Alerta en Proceso de Carga ADF",
+													"weight": "bolder",
+													"size": "medium",
+													"color": "warning"
+												},
+												{
+													"type": "FactSet",
+													"facts": [
+														{
+															"title": "Archivo Origen:",
+															"value": "@{item().archivoOrigen}"
+														},
+														{
+															"title": "Contenedor:",
+															"value": "@{item().contenedorOrigen}"
+														},
+														{
+															"title": "Prioridad:",
+															"value": "Secundaria (Proceso Continúa)"
+														},
+														{
+															"title": "Pipeline Run ID:",
+															"value": "@{activity('CopiaDinamica').pipelineRunId}"
+														},
+														{
+															"title": "Error:",
+															"value": "@{activity('CopiaDinamica').Error.Message}"
 														}
-													}
-												]
-											}
+													]
+												}
+											]
 										}
 									}
 								],
@@ -260,50 +248,40 @@
 										"typeProperties": {
 											"method": "POST",
 											"url": "https://prod-54.westus.logic.azure.com:443/workflows/862b45f6937a47c89c8ef43b0954c69a/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iBD1YB9Pb7ronbTFQF9x-R7InVSOlhLHpggDfQQymN4",
-											"body": {
-												"type": "message",
-												"attachments": [
-													{
-														"contentType": "application/vnd.microsoft.card.adaptive",
-														"content": {
-															"type": "AdaptiveCard",
-															"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-															"version": "1.4",
-															"body": [
-																{
-																	"type": "TextBlock",
-																	"text": "⚠️ Alerta en Proceso de Carga ADF",
-																	"weight": "bolder",
-																	"size": "medium",
-																	"color": "warning"
-																},
-																{
-																	"type": "FactSet",
-																	"facts": [
-																		{
-																			"title": "Tabla:",
-																			"value": "@{item().tablaOrigen}"
-																		},
-																		{
-																			"title": "Prioridad:",
-																			"value": "CRÍTICA (¡PROCESO DETENIDO!)",
-																			"color": "attention"
-																		},
-																		{
-																			"title": "Pipeline Run ID:",
-																			"value": "@{activity('CopiaDinamica').pipelineRunId}"
-																		},
-																		{
-																			"title": "Error:",
-																			"value": "@{activity('CopiaDinamica').Error.Message}"
-																		}
-																	]
-																}
-															]
+											"body": [
+												{
+													"type": "TextBlock",
+													"text": "🔴 ERROR CRÍTICO en Proceso de Carga ADF",
+													"weight": "bolder",
+													"size": "medium",
+													"color": "attention"
+												},
+												{
+													"type": "FactSet",
+													"facts": [
+														{
+															"title": "Archivo Origen:",
+															"value": "@{item().archivoOrigen}"
+														},
+														{
+															"title": "Contenedor:",
+															"value": "@{item().contenedorOrigen}"
+														},
+														{
+															"title": "Prioridad:",
+															"value": "CRÍTICA (¡PROCESO DETENIDO!)"
+														},
+														{
+															"title": "Pipeline Run ID:",
+															"value": "@{activity('CopiaDinamica').pipelineRunId}"
+														},
+														{
+															"title": "Error:",
+															"value": "@{activity('CopiaDinamica').Error.Message}"
 														}
-													}
-												]
-											}
+													]
+												}
+											]
 										}
 									}
 								]
