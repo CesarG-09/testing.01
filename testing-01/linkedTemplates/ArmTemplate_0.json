@@ -1,0 +1,407 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Nombre de instancia de Data Factory",
+			"defaultValue": "testing-01"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Cadena protegida para \"connectionString\"de \"AzureBlobStorage1\""
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_AzureBlob_Generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"p_contenedor": {
+						"type": "string"
+					},
+					"p_archivo": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().p_archivo",
+							"type": "Expression"
+						},
+						"container": {
+							"value": "@dataset().p_contenedor",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "v_ConfiguracionTablas",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "v_ConfiguracionTablas",
+							"value": [
+								{
+									"contenedorOrigen": "entrada",
+									"archivoOrigen": "clientes.csv",
+									"contenedorDestino": "salida",
+									"archivoDestino": "cliente.csv",
+									"prioridad": 1
+								},
+								{
+									"contenedorOrigen": "entrada",
+									"archivoOrigen": "cuenta.csv",
+									"contenedorDestino": "salida",
+									"archivoDestino": "cuenta.csv",
+									"prioridad": 1
+								},
+								{
+									"contenedorOrigen": "entrada",
+									"archivoOrigen": "direcciones.csv",
+									"contenedorDestino": "salida",
+									"archivoDestino": "direcciones.csv",
+									"prioridad": 2
+								},
+								{
+									"contenedorOrigen": "entrada",
+									"archivoOrigen": "productos.csv",
+									"contenedorDestino": "salida",
+									"archivoDestino": "productos.csv",
+									"prioridad": 2
+								}
+							]
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "v_ConfiguracionTablas",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('v_ConfiguracionTablas')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "CopiaDinamica",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobStorageWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_AzureBlob_Generico",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_contenedor": {
+													"value": "@item().contenedorOrigen",
+													"type": "Expression"
+												},
+												"p_archivo": {
+													"value": "@item().archivoOrigen",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_AzureBlob_Generico",
+											"type": "DatasetReference",
+											"parameters": {
+												"p_contenedor": {
+													"value": "@item().contenedorDestino",
+													"type": "Expression"
+												},
+												"p_archivo": {
+													"value": "@item().archivoDestino",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								},
+								{
+									"name": "If Condition1",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "CopiaDinamica",
+											"dependencyConditions": [
+												"Failed"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@equals(item().prioridad, 1)",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "Web2",
+												"type": "WebActivity",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"method": "POST",
+													"headers": {
+														"Content-Type": "application/json"
+													},
+													"url": "https://prod-54.westus.logic.azure.com:443/workflows/862b45f6937a47c89c8ef43b0954c69a/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iBD1YB9Pb7ronbTFQF9x-R7InVSOlhLHpggDfQQymN4",
+													"body": {
+														"type": "message",
+														"attachments": [
+															{
+																"contentType": "application/vnd.microsoft.card.adaptive",
+																"content": {
+																	"type": "AdaptiveCard",
+																	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+																	"version": "1.4",
+																	"body": [
+																		{
+																			"type": "TextBlock",
+																			"text": "⚠️ Alerta en Proceso de Carga ADF",
+																			"weight": "bolder",
+																			"size": "medium",
+																			"color": "warning"
+																		},
+																		{
+																			"type": "FactSet",
+																			"facts": [
+																				{
+																					"title": "Tabla:",
+																					"value": "@{item().tablaOrigen}"
+																				},
+																				{
+																					"title": "Prioridad:",
+																					"value": "Secundaria (Proceso Continúa)"
+																				},
+																				{
+																					"title": "Pipeline Run ID:",
+																					"value": "@{activity('CopiaDinamica').pipelineRunId}"
+																				},
+																				{
+																					"title": "Error:",
+																					"value": "@{activity('CopiaDinamica').Error.Message}"
+																				}
+																			]
+																		}
+																	]
+																}
+															}
+														]
+													}
+												}
+											}
+										],
+										"ifTrueActivities": [
+											{
+												"name": "Fail1",
+												"type": "Fail",
+												"dependsOn": [
+													{
+														"activity": "Web1",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"userProperties": [],
+												"typeProperties": {
+													"message": {
+														"value": "@Error en la copia: activity('CopiaDinamica').output",
+														"type": "Expression"
+													},
+													"errorCode": "10"
+												}
+											},
+											{
+												"name": "Web1",
+												"type": "WebActivity",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"method": "POST",
+													"headers": {},
+													"url": "https://prod-54.westus.logic.azure.com:443/workflows/862b45f6937a47c89c8ef43b0954c69a/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iBD1YB9Pb7ronbTFQF9x-R7InVSOlhLHpggDfQQymN4",
+													"body": {
+														"type": "message",
+														"attachments": [
+															{
+																"contentType": "application/vnd.microsoft.card.adaptive",
+																"content": {
+																	"type": "AdaptiveCard",
+																	"$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+																	"version": "1.4",
+																	"body": [
+																		{
+																			"type": "TextBlock",
+																			"text": "⚠️ Alerta en Proceso de Carga ADF",
+																			"weight": "bolder",
+																			"size": "medium",
+																			"color": "warning"
+																		},
+																		{
+																			"type": "FactSet",
+																			"facts": [
+																				{
+																					"title": "Tabla:",
+																					"value": "@{item().tablaOrigen}"
+																				},
+																				{
+																					"title": "Prioridad:",
+																					"value": "CRÍTICA (¡PROCESO DETENIDO!)",
+																					"color": "attention"
+																				},
+																				{
+																					"title": "Pipeline Run ID:",
+																					"value": "@{activity('CopiaDinamica').pipelineRunId}"
+																				},
+																				{
+																					"title": "Error:",
+																					"value": "@{activity('CopiaDinamica').Error.Message}"
+																				}
+																			]
+																		}
+																	]
+																}
+															}
+														]
+													}
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"v_ConfiguracionTablas": {
+						"type": "Array"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_AzureBlob_Generico')]"
+			]
+		}
+	]
+}
