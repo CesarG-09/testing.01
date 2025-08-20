@@ -101,7 +101,24 @@
 										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
-											"waitTimeInSeconds": 1
+											"waitTimeInSeconds": 0
+										}
+									},
+									{
+										"name": "Fail1",
+										"type": "Fail",
+										"dependsOn": [
+											{
+												"activity": "Skip Processing",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"message": "ERROR EN UNA TABLA PRIORIDAD",
+											"errorCode": "100"
 										}
 									}
 								],
@@ -171,84 +188,51 @@
 												}
 											}
 										]
-									},
+									}
+								]
+							}
+						},
+						{
+							"name": "Check Priority on Error",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "If Not Stopped",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@and(not(variables('stopNow')), equals(int(item()['prioridad']), 1))",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
 									{
-										"name": "Handle Copy Success",
+										"name": "Log Error Priority 2",
 										"type": "Wait",
-										"dependsOn": [
-											{
-												"activity": "Copy data1",
-												"dependencyConditions": [
-													"Succeeded"
-												]
-											}
-										],
+										"dependsOn": [],
 										"userProperties": [],
 										"typeProperties": {
 											"waitTimeInSeconds": 1
 										}
-									},
+									}
+								],
+								"ifTrueActivities": [
 									{
-										"name": "Check Priority on Error",
-										"type": "IfCondition",
-										"dependsOn": [
-											{
-												"activity": "Copy data1",
-												"dependencyConditions": [
-													"Failed"
-												]
-											}
-										],
+										"name": "stopNowTrue",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
 										"userProperties": [],
 										"typeProperties": {
-											"expression": {
-												"value": "@equals(int(item()['prioridad']), 1)",
-												"type": "Expression"
-											},
-											"ifFalseActivities": [
-												{
-													"name": "Log Error Priority 2",
-													"type": "Wait",
-													"dependsOn": [],
-													"userProperties": [],
-													"typeProperties": {
-														"waitTimeInSeconds": 1
-													}
-												}
-											],
-											"ifTrueActivities": [
-												{
-													"name": "stopNowTrue",
-													"type": "SetVariable",
-													"dependsOn": [],
-													"policy": {
-														"secureOutput": false,
-														"secureInput": false
-													},
-													"userProperties": [],
-													"typeProperties": {
-														"variableName": "stopNow",
-														"value": true
-													}
-												},
-												{
-													"name": "Fail1",
-													"type": "Fail",
-													"dependsOn": [
-														{
-															"activity": "stopNowTrue",
-															"dependencyConditions": [
-																"Succeeded"
-															]
-														}
-													],
-													"userProperties": [],
-													"typeProperties": {
-														"message": "Error crítico en archivo de prioridad 1. Pipeline detenido.",
-														"errorCode": "10"
-													}
-												}
-											]
+											"variableName": "stopNow",
+											"value": true
 										}
 									}
 								]
