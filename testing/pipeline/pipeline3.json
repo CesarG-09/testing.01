@@ -16,7 +16,7 @@
 					"value": [
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "cliente.csv",
+							"archivoOrigen": "clientes.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "cliente_copy.csv",
 							"prioridad": 1
