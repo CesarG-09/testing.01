@@ -23,7 +23,7 @@
 						},
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "cuentas.csv",
+							"archivoOrigen": "cuenta.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "cuenta_copy.csv",
 							"prioridad": 1
