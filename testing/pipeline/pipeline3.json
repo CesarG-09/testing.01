@@ -30,7 +30,7 @@
 						},
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "direccione.csv",
+							"archivoOrigen": "direcciones.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "direcciones_copy.csv",
 							"prioridad": 2
