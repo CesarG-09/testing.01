@@ -4,7 +4,6 @@
 		"activities": [
 			{
 				"name": "Initialize Variables",
-				"description": "",
 				"type": "SetVariable",
 				"dependsOn": [],
 				"policy": {
@@ -19,28 +18,28 @@
 							"contenedorOrigen": "entrada",
 							"archivoOrigen": "cliente.csv",
 							"contenedorDestino": "salida",
-							"archivoDestino": "cliente.csv",
+							"archivoDestino": "cliente_copy.csv",
 							"prioridad": 1
 						},
 						{
 							"contenedorOrigen": "entrada",
 							"archivoOrigen": "cuenta.csv",
 							"contenedorDestino": "salida",
-							"archivoDestino": "cuenta.csv",
+							"archivoDestino": "cuenta_copy.csv",
 							"prioridad": 1
 						},
 						{
 							"contenedorOrigen": "entrada",
 							"archivoOrigen": "direccione.csv",
 							"contenedorDestino": "salida",
-							"archivoDestino": "direcciones.csv",
+							"archivoDestino": "direcciones_copy.csv",
 							"prioridad": 2
 						},
 						{
 							"contenedorOrigen": "entrada",
 							"archivoOrigen": "productos.csv",
 							"contenedorDestino": "salida",
-							"archivoDestino": "productos.csv",
+							"archivoDestino": "productos_copy.csv",
 							"prioridad": 2
 						}
 					]
