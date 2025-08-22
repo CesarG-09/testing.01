@@ -16,14 +16,14 @@
 					"value": [
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "clientes.csv",
+							"archivoOrigen": "cliente.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "cliente_copy.csv",
 							"prioridad": 1
 						},
 						{
 							"contenedorOrigen": "entrada",
-							"archivoOrigen": "cuenta.csv",
+							"archivoOrigen": "cuentas.csv",
 							"contenedorDestino": "salida",
 							"archivoDestino": "cuenta_copy.csv",
 							"prioridad": 1
@@ -264,6 +264,26 @@
 										"typeProperties": {
 											"variableName": "stopNow",
 											"value": true
+										}
+									},
+									{
+										"name": "ERROR EN CARGA PRIMARIA",
+										"type": "Fail",
+										"dependsOn": [
+											{
+												"activity": "Stop Pipeline",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"message": {
+												"value": "@concat('HA OCURRIDO UN ERROR AL CARGAR LA TABLA: ', variables('ae')[variables('idx')]['archivoOrigen'])",
+												"type": "Expression"
+											},
+											"errorCode": "100"
 										}
 									}
 								]
